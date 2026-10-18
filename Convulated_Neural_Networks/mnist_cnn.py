@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
 
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -187,3 +188,160 @@ with torch.no_grad(): #do not compute gradients during evaluation, as we are not
 
 test_accuracy = correct / total
 print(f"\nTest Accuracy: {test_accuracy:.4f}")
+
+#104 images were misclassified out of 10,000 test images, which is a test accuracy of 98.96%. inspecting.
+wrong_images = []
+wrong_predictions = []
+wrong_labels = []
+wrong_confidences = []
+
+model.eval()
+
+with torch.no_grad():
+
+    for images, labels in test_loader:
+
+        logits = model(images)
+
+        probabilities = torch.softmax(logits, dim=1)
+
+        confidence, predictions = torch.max(
+            probabilities,
+            dim=1
+        )
+
+        wrong_mask = predictions != labels
+
+        wrong_images.append(images[wrong_mask])
+        wrong_predictions.append(predictions[wrong_mask])
+        wrong_labels.append(labels[wrong_mask])
+        wrong_confidences.append(confidence[wrong_mask])
+
+
+wrong_images = torch.cat(wrong_images)
+wrong_predictions = torch.cat(wrong_predictions)
+wrong_labels = torch.cat(wrong_labels)
+wrong_confidences = torch.cat(wrong_confidences)
+
+print("\nNumber of mistakes:", len(wrong_labels))
+
+print("\nFirst 10 mistakes:")
+
+for i in range(min(10, len(wrong_labels))):
+
+    print(
+        f"Actual: {wrong_labels[i].item()}, "
+        f"Predicted: {wrong_predictions[i].item()}, "
+        f"Confidence: {wrong_confidences[i].item():.4f}"
+    )
+
+# Plot some of the wrong predictions. some were confidently wrong, needs human inspection. perhaps it makes sense why the system might confuse some handwritten digits.
+fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+
+for i, ax in enumerate(axes.flat):
+
+    image = wrong_images[i].squeeze()
+
+    ax.imshow(image, cmap="gray")
+
+    ax.set_title(
+        f"Actual: {wrong_labels[i].item()}\n"
+        f"Pred: {wrong_predictions[i].item()}\n"
+        f"Conf: {wrong_confidences[i].item():.2%}"
+    )
+
+    ax.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+#checking out the most confidently wrong predictions. 
+sorted_indices = torch.argsort(
+    wrong_confidences,
+    descending=True
+)
+
+print("\nMOST CONFIDENTLY WRONG:")
+
+for i in range(10):
+
+    index = sorted_indices[i]
+
+    print(
+        f"Actual: {wrong_labels[index].item()}, "
+        f"Predicted: {wrong_predictions[index].item()}, "
+        f"Confidence: {wrong_confidences[index].item():.4f}"
+    )
+
+#view em    
+fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+
+for i, ax in enumerate(axes.flat):
+
+    index = sorted_indices[i]
+
+    image = wrong_images[index].squeeze()
+
+    ax.imshow(image, cmap="gray")
+
+    ax.set_title(
+        f"Actual: {wrong_labels[index].item()}\n"
+        f"Pred: {wrong_predictions[index].item()}\n"
+        f"Conf: {wrong_confidences[index].item():.2%}"
+    )
+
+    ax.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+#opening up the model to see what the first convolutional layer is doing. we can visualize the feature maps produced by the first convolutional layer for a sample image from the test dataset. This can help us understand what features the model is learning to detect in the input images.
+sample_image, sample_label = test_dataset[0]
+
+print(sample_image.shape)
+print(sample_label)
+sample_batch = sample_image.unsqueeze(0)
+with torch.no_grad():
+
+    conv1_output = model.conv1(sample_batch)
+    conv1_activated = model.relu(conv1_output)
+
+print("Original image:", sample_batch.shape)
+print("Conv1 feature maps:", conv1_activated.shape)
+fig, axes = plt.subplots(4, 8, figsize=(14, 7))
+
+for i, ax in enumerate(axes.flat):
+
+    feature_map = conv1_activated[0, i]
+
+    ax.imshow(feature_map, cmap="gray")
+    ax.set_title(f"Filter {i + 1}")
+    ax.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+#look into the second convolutional layer. 
+with torch.no_grad():
+
+    x = model.conv1(sample_batch)
+    x = model.relu(x)
+    x = model.pool(x)
+
+    conv2_output = model.conv2(x)
+    conv2_activated = model.relu(conv2_output)
+
+print("Input to Conv2:", x.shape)
+print("Conv2 feature maps:", conv2_activated.shape)
+fig, axes = plt.subplots(8, 8, figsize=(12, 12))
+
+for i, ax in enumerate(axes.flat):
+
+    feature_map = conv2_activated[0, i]
+
+    ax.imshow(feature_map, cmap="gray")
+    ax.set_title(f"{i + 1}")
+    ax.axis("off")
+
+plt.tight_layout()
+plt.show()
