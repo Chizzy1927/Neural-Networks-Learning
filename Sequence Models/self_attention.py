@@ -40,25 +40,8 @@ print(attention_weights)
 print("\nEach row sums to:")
 print(attention_weights.sum(dim=-1)) #batch dimension
 
-#calculate the weighted sum of the values using the attention weights
-scaled_scores = scores / math.sqrt(K.shape[-1])
-
-attention_weights = torch.softmax(
-    scaled_scores,
-    dim=-1
-)
-
-print("\nScaled attention scores:")
-print(scaled_scores)
-
-print("\nAttention weights:")
-print(attention_weights)
-
-print("\nEach row sums to:")
-print(attention_weights.sum(dim=-1))
-
+#compute the final attention output by multiplying the attention weights with the value matrix V
 attention_output = attention_weights @ V
-
 print("\nV:")
 print(V)
 
