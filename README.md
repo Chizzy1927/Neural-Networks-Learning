@@ -1,6 +1,6 @@
 # Neural Networks Learning
 
-A hands-on exploration of neural networks and deep learning using Python and PyTorch. This repository documents my progression from implementing fundamental neural-network concepts to building CNNs, sequence models, attention mechanisms, and a GPT-style Transformer.
+A hands-on exploration of neural networks and deep learning using Numpy, Python and PyTorch. This repository documents my progression from implementing fundamental neural-network concepts to building CNNs, sequence models, attention mechanisms, and a GPT-style Transformer.
 
 ## Tiny GPT-Style Transformer
 
