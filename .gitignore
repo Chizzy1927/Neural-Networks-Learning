@@ -1,0 +1,13 @@
+# Trained Hugging Face model checkpoints
+best_frozen_sentiment_model/
+best_full_sentiment_model/
+best_lora_sentiment_model/
+sanity_check_full_sentiment_model/
+sanity_lora_sentiment_model/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code settings
+.vscode/
