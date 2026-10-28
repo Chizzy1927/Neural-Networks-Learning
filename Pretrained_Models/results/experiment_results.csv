@@ -1,0 +1,4 @@
+Method,Trainable Parameters,Trainable Percentage,Best Validation Accuracy,Comparison Accuracy,Precision,Recall,F1 Score,Training Time Minutes
+Frozen,592130,0.88,83.37,85.70,89.58,84.16,86.78,44.37
+LoRA,739586,1.09,89.45,90.54,93.75,88.98,91.30,103.91
+Full Fine-Tuning,66955010,100.00,90.37,94.40,97.50,92.33,94.85,150.43
